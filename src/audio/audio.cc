@@ -1,22 +1,13 @@
+#include "audio.hh"
 
-#include <iostream>
-#include <string>
-#include <memory>
-
-extern "C" {
-    #include <libavcodec/avcodec.h>
-    #include <libavformat/avformat.h>
-    #include <libavutil/avutil.h>
-    #include <libavutil/imgutils.h>
-    #include <libswscale/swscale.h>
+template <typename ... Ts> 
+void process_audio_frames(Ts ... ts){
+    (read_audio_frames(ts), ...)
 }
 
-/* default index value for the audio stream */
-static constexpr int audio_stream_index = -1;
-void audio_encoding_error(char* errormsg);
-
 /* reads incoming stream and fetches the audio data */
-void read_audio_frames(const char* audiofile) {
+template <typename ... Ts>
+void Audio<Ts ...>::read_audio_frames(const char* audiofile) {
     AVFormatContext* context = nullptr;
     if(avformat_open_input(&context, audiofile,nullptr, nullptr) < 0)
         audio_encoding_error("error encoding audiofile");
