@@ -14,7 +14,6 @@ extern "C" {
 }
 
 void video_encoding_error(char* errormsg);
-
 void video(const char* filename) {
     AVFormatContext* context = nullptr;
     if(avformat_open_input(&context, filename, nullptr, nullptr) < 0)
