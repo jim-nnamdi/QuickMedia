@@ -1,22 +1,13 @@
+#include "video.hh"
 
-#include <iostream>
-#include <string>
-#include <memory>
-
-extern "C" {
-    #include <libavcodec/avcodec.h>
-    #include <libavformat/avformat.h>
-    #include <libavutil/avutil.h>
-    #include <libavutil/imgutils.h>
-    #include <libswscale/swscale.h>
+template <typename ... Ts>
+void Video<Ts ...>::process_video_frames(Ts ... ts) {
+    (read_video_frames(ts), ...);
 }
 
-/* default index value for the video stream */
-static constexpr int video_stream_index = -1;
-void video_encoding_error(char* errormsg);
-
 /* reads incoming stream and fetches the video data */
-void read_video_frames(const char* filename) {
+template <typename ... Ts>
+void Video<Ts ...>::read_video_frames(const char* filename) {
     AVFormatContext* context = nullptr;
     if(avformat_open_input(&context, filename, nullptr, nullptr) < 0)
         video_encoding_error("error opening file");
