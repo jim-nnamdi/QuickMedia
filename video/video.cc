@@ -1,4 +1,5 @@
 #include "video.hh"
+#include <cstdint>
 
 template <typename... Ts>
 void Video<Ts...>::process_video_frames(Ts... ts)
@@ -35,10 +36,13 @@ void Video<Ts...>::read_video_frames(const char *filename)
     AVFrame *frame = av_frame_alloc();
     AVPacket *packet;
     av_init_packet(packet);
+    int64_t packetcount = 0;
     while (av_read_frame(context, packet) < 0)
     {
         if (packet->stream_index == video_stream_index_value)
         {
+            int64_t duration = packet->pts;
+            printf("video duration : '%d'\n", duration);
             int ret = avcodec_send_packet(avcontext, packet);
             if (ret < 0)
                 video_encoding_error("cannot send packet");
@@ -49,6 +53,8 @@ void Video<Ts...>::read_video_frames(const char *filename)
                     break;
             }
         }
+        packetcount = packetcount + 1;
+        if(packetcount == 10) break;
     }
     av_packet_unref(packet);
     av_frame_free(&frame);

@@ -1,4 +1,5 @@
 #include "audio.hh"
+#include <cstdint>
 
 template <typename... Ts>
 void process_audio_frames(Ts... ts)
@@ -33,10 +34,13 @@ void Audio<Ts...>::read_audio_frames(const char *audiofile)
     AVFrame *frames = av_frame_alloc();
     AVPacket *packet;
     av_init_packet(packet);
+    int64_t packetcount = 0;
     while (av_read_frame(context, packet) < 0)
     {
         if (packet->stream_index == audio_file_stream_index)
-        {
+        {   
+            int64_t duration = packet->pts;
+            printf("audio duration : '%d'\n", duration);
             int ret = avcodec_send_packet(avcontext, packet);
             if (ret < 0)
                 audio_encoding_error("error sending packet");
@@ -47,6 +51,8 @@ void Audio<Ts...>::read_audio_frames(const char *audiofile)
                     break;
             }
         }
+        packetcount = packetcount + 1;
+        if(packetcount == 20) break;
     }
     av_packet_unref(packet);
     av_frame_free(&frames);
