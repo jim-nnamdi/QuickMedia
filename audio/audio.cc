@@ -48,7 +48,7 @@ void Audio<Ts...>::read_audio_frames(const char *audiofile)
             {
                 ret = avcodec_receive_frame(avcontext, frames);
                 if (ret == AVERROR(EAGAIN) || AVERROR(EOF))
-                    break;
+                    av_frame_unref(frames); av_freep(frames); break;
             }
         }
         packetcount = packetcount + 1;

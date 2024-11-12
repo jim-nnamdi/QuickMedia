@@ -34,6 +34,12 @@ void Video<Ts...>::read_video_frames(const char *filename)
         video_encoding_error("cannot open context");
 
     AVFrame *frame = av_frame_alloc();
+    AVFrame *rgb_frame = av_frame_alloc();
+    if(rgb_frame == NULL) return -1;
+    uint8_t buffer = NULL;
+    int num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, avcontext->width, avcontext->height,1);
+    buffer = (uint8_t*)av_malloc(num_bytes * sizeof(uint8_t));
+    av_image_fill_arrays(frame->height, frame->linesize,buffer,AV_PIX_FMT_RGB24,avcontext->width, avcontext->height, 1);
     AVPacket *packet;
     av_init_packet(packet);
     int64_t packetcount = 0;
