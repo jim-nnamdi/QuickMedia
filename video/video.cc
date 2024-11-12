@@ -69,8 +69,10 @@ void Video<Ts...>::read_video_frames(const char *filename)
         if(++i <= 5)
             save_frame(rgb_frame, avcontext->width, avcontext->height, i);
     }
+    av_free(buffer);
     av_packet_unref(packet);
     av_frame_free(&frame);
+    av_frame_free(&rgb_frame);
     avcodec_free_context(&avcontext);
     avformat_free_context(context);
 }
