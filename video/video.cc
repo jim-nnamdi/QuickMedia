@@ -35,11 +35,15 @@ void Video<Ts...>::read_video_frames(const char *filename)
 
     AVFrame *frame = av_frame_alloc();
     AVFrame *rgb_frame = av_frame_alloc();
-    if(rgb_frame == NULL) return -1;
-    uint8_t buffer = NULL;
+    if(rgb_frame == nullptr) return -1;
+    uint8_t buffer = nullptr;
     int num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, avcontext->width, avcontext->height,1);
     buffer = (uint8_t*)av_malloc(num_bytes * sizeof(uint8_t));
     av_image_fill_arrays(frame->height, frame->linesize,buffer,AV_PIX_FMT_RGB24,avcontext->width, avcontext->height, 1);
+
+    struct SwsContext *sws_ctx = nullptr;
+    sws_ctx = sws_getContext(avcontext->width, avcontext->height, avcontext->pix_fmt,avcontext->width, avcontext->height,AV_PIX_FMT_RGB24,SWS_BILINEAR, nullptr, nullptr, nullptr);
+    if(!sws_ctx) fprintf(stderr, "Error initializing the sws context"); return -1;
     AVPacket *packet;
     av_init_packet(packet);
     int64_t packetcount = 0;
@@ -52,13 +56,14 @@ void Video<Ts...>::read_video_frames(const char *filename)
             int ret = avcodec_send_packet(avcontext, packet);
             if (ret < 0)
                 video_encoding_error("cannot send packet");
-            while (avcodec_receive_frame(avcontext, frame))
+            while (ret >= 0)
             {
                 ret = avcodec_receive_frame(avcontext, frame);
                 if (ret == AVERROR(EAGAIN) || ret == AVERROR(EOF))
                     break;
             }
         }
+        sws_scale(sws_context,(uint8_t const* const*)frame->data,frame->linesize,0,avcontext->height,rgb_frame->data,rgb_frame->linesize);
         packetcount = packetcount + 1;
         if(packetcount == 10) break;
     }
