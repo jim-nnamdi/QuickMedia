@@ -1,5 +1,7 @@
 #include "video.hh"
 #include <cstdint>
+#include <string>
+#include <cstring>
 
 template <typename... Ts>
 void Video<Ts...>::process_video_frames(Ts... ts)
@@ -46,7 +48,7 @@ void Video<Ts...>::read_video_frames(const char *filename)
     if(!sws_ctx) fprintf(stderr, "Error initializing the sws context"); return -1;
     AVPacket *packet;
     av_init_packet(packet);
-    int64_t packetcount = 0;
+    int i = 0;
     while (av_read_frame(context, packet) < 0)
     {
         if (packet->stream_index == video_stream_index_value)
@@ -64,13 +66,26 @@ void Video<Ts...>::read_video_frames(const char *filename)
             }
         }
         sws_scale(sws_context,(uint8_t const* const*)frame->data,frame->linesize,0,avcontext->height,rgb_frame->data,rgb_frame->linesize);
-        packetcount = packetcount + 1;
-        if(packetcount == 10) break;
+        if(++i <= 5)
+            save_frame(rgb_frame, avcontext->width, avcontext->height, i);
     }
     av_packet_unref(packet);
     av_frame_free(&frame);
     avcodec_free_context(&avcontext);
     avformat_free_context(context);
+}
+
+void save_frame(AVFrame* rgb_frame, int width, int height, int iframe)
+{
+    FILE* pfile;
+    std::string filename = "frame" + std::to_string(iframe) + ".ppm";
+    pfile = fopen(filename.c_str(),"wb");
+    if(!pfile) perror(filename.c_str()); return;
+    fprintf(pfile, "P6\n%d %d\n255\n", width, height);
+    for(int i = 0; i < height; ++i)
+        fwrite(rgb_frame->data[0] + i * rgb_frame->linesize[0],1,width,pfile);
+    fclose(pfile);
+
 }
 
 void video_encoding_error(char *errormsg)
