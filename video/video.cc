@@ -40,7 +40,7 @@ void Video<Ts...>::read_video_frames(const char *filename)
     if(rgb_frame == nullptr) return -1;
     uint8_t buffer = nullptr;
     int num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, avcontext->width, avcontext->height,1);
-    buffer = (uint8_t*)av_malloc(num_bytes * sizeof(uint8_t));
+    buffer = (uint8_t)av_malloc(num_bytes * sizeof(uint8_t));
     av_image_fill_arrays(frame->height, frame->linesize,buffer,AV_PIX_FMT_RGB24,avcontext->width, avcontext->height, 1);
 
     struct SwsContext *sws_ctx = nullptr;

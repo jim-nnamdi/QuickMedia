@@ -32,6 +32,20 @@ void Audio<Ts...>::read_audio_frames(const char *audiofile)
     avcodec_parameters_to_context(avcontext, parameters);
 
     AVFrame *frames = av_frame_alloc();
+    AVFrame *rgb_frame = av_frame_alloc();
+    uint8_t buffer = NULL;
+    int num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24,avcontext->width, avcontext->height, 1);
+    buffer = (uint8_t)av_malloc(num_bytes * sizeof(uint8_t));
+    av_image_fill_arrays(frames->data, frames->linesize,buffer,AV_PIX_FMT_RGB24, avcontext->width, avcontext->height,1);
+
+    struct SwsContext sws_ctx = nullptr;
+    sws_ctx = sws_getContext(
+        avcontext->width,
+        avcontext->height,
+        avcontext->pix_fmt,
+        avcontext->width,avcontext->height,
+        AV_PIX_FMT_RGB24,SWS_BILINEAR,nullptr,nullptr,nullptr
+    );
     AVPacket *packet;
     av_init_packet(packet);
     int64_t packetcount = 0;
@@ -50,14 +64,29 @@ void Audio<Ts...>::read_audio_frames(const char *audiofile)
                 if (ret == AVERROR(EAGAIN) || AVERROR(EOF))
                     av_frame_unref(frames); av_freep(frames); break;
             }
+
         }
-        packetcount = packetcount + 1;
-        if(packetcount == 20) break;
+        sws_scale(sws_context,(uint8_t const* const*)frame->data,frame->linesize,0,avcontext->height,rgb_frame->data,rgb_frame->linesize);
+        if(++i <= 5)
+            save_frame(rgb_frame, avcontext->width, avcontext->height, i);
     }
     av_packet_unref(packet);
     av_frame_free(&frames);
     avcodec_free_context(&avcontext);
     avformat_free_context(context);
+}
+
+void save_frame(AVFrame* rgb_frame, int width, int height, int iframe)
+{
+    FILE* pfile;
+    std::string filename = "frame" + std::to_string(iframe) + ".ppm";
+    pfile = fopen(filename.c_str(),"wb");
+    if(!pfile) perror(filename.c_str()); return;
+    fprintf(pfile, "P6\n%d %d\n255\n", width, height);
+    for(int i = 0; i < height; ++i)
+        fwrite(rgb_frame->data[0] + i * rgb_frame->linesize[0],1,width,pfile);
+    fclose(pfile);
+
 }
 
 void audio_encoding_error(char *errormsg)
