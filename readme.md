@@ -5,7 +5,6 @@ This library tends to provide a simplistic and free option for Generating video 
 >[!NOTE]
 > Still work in Progress
 
->[!TIP]
->Study Notes for color grading and ratios
--[ ] YUV formats
--[ ] RGB Differences
+Study Notes for color grading and ratios
+- [ ] YUV formats
+- [ ] RGB Differences
