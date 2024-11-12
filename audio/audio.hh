@@ -1,3 +1,5 @@
+#ifndef AUDIO_H
+#define AUDIO_H
 
 #include <iostream>
 #include <string>
@@ -23,3 +25,5 @@ class Audio {
     static constexpr int audio_stream_index = -1;
     void audio_encoding_error(char* errormsg);
 };
+
+#endif

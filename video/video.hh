@@ -1,3 +1,5 @@
+#ifndef VIDEO_H
+#define VIDEO_H
 
 #include <iostream>
 #include <string>
@@ -24,3 +26,5 @@ class Video {
     static constexpr int video_stream_index = -1;
     void video_encoding_error(char* errormsg);
 };
+
+#endif
